@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class RoadGen : MonoBehaviour
 {
@@ -13,11 +14,13 @@ public class RoadGen : MonoBehaviour
     void Start()
     {
         ReselRoad();
-        StartRoad();
+        //StartRoad();
     }
 
     void Update()
     {
+        if (EventSystem.current.IsPointerOverGameObject()) return;
+
         if (speed == 0) return;
 
         foreach (GameObject road in roads)
@@ -48,7 +51,8 @@ public class RoadGen : MonoBehaviour
 
     public void StartRoad()
     {
-        speed = maxSpeed; 
+        speed = maxSpeed;
+        SwipeManager.instance.enabled = true;
     }
 
     public void ReselRoad()
@@ -63,6 +67,6 @@ public class RoadGen : MonoBehaviour
         {
             CreatNextRoad();
         }
-
+        SwipeManager.instance.enabled = false;
     }
 }

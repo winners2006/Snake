@@ -14,6 +14,9 @@ public class SnakeController : MonoBehaviour
     public float pointStart;
     public float pointFinish;
 
+    bool isMoved = false;
+    Coroutine movingCorountine;
+
     Rigidbody snake;
 
     void Start()
@@ -27,35 +30,39 @@ public class SnakeController : MonoBehaviour
     {
         if(Input.GetKeyDown(KeyCode.A) && pointFinish > -lineOffset)
         {
-            pointStart = pointFinish;
-            pointFinish -= lineOffset;
-            targetVelosity = new Vector3(-lineChangeSpeed, 0, 0);
-
+            MoveHorizontel(-lineChangeSpeed);
         }
         if (Input.GetKeyDown(KeyCode.D) && pointFinish < lineOffset)
         {
-            pointStart = pointFinish;
-            pointFinish += lineOffset;
-            targetVelosity = new Vector3(lineChangeSpeed, 0, 0);
+            MoveHorizontel(lineChangeSpeed);
         }
-        float x = Mathf.Clamp(transform.position.x, Mathf.Min(pointStart, pointFinish), Mathf.Max(pointStart, pointFinish));
-        transform.position = new Vector3(x, transform.position.y, transform.position.z);
-    }
-
-    private void FixedUpdate()
-    {
-        snake.velocity = targetVelosity;
-        if((transform.position.x > pointFinish && targetVelosity.x >0) ||
-            (transform.position.x < pointFinish && targetVelosity.x < 0))
-        {
-            targetVelosity = Vector3.zero;
-            snake.velocity = targetVelosity;
-            snake.position = new Vector3(pointFinish, snake.position.y, snake.position.z);
-        }
+        
     }
 
     void MoveHorizontel(float speed)
     {
+        pointStart = pointFinish;
+        pointFinish += Mathf.Sign(speed) * lineOffset;
 
+        if (isMoved ) { StopCoroutine(movingCorountine); isMoved = false; }
+        movingCorountine = StartCoroutine(MoveCoroutine(speed));
+
+        targetVelosity = new Vector3(-lineChangeSpeed, 0, 0);
+    }
+
+    IEnumerator MoveCoroutine(float vectorX)
+    {
+        isMoved = true;
+        while (Mathf.Abs(pointStart - transform.position.x) < lineOffset)
+        {
+            yield return new WaitForFixedUpdate();
+
+            snake.velocity = new Vector3(vectorX, snake.velocity.y, 0);
+            float x = Mathf.Clamp(transform.position.x, Mathf.Min(pointStart, pointFinish), Mathf.Max(pointStart, pointFinish));
+            transform.position = new Vector3(x, transform.position.y, transform.position.z);
+        }
+        snake.velocity = Vector3.zero;
+        transform.position = new Vector3(pointFinish, transform.position.y, transform.position.z);
+        isMoved = false;
     }
 }
